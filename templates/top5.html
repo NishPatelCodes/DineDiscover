@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, rating, csrf with context %}
+{% block title %}My Top 5 {{ info.name }}{% endblock %}
+
+{% macro move_form(r, direction, disabled) -%}
+<form method="post" action="{{ url_for('top5.move', cuisine=cuisine) }}">
+  {{ csrf() }}
+  <input type="hidden" name="restaurant_id" value="{{ r.id }}">
+  <input type="hidden" name="direction" value="{{ direction }}">
+  <button type="submit" class="btn btn-outline btn-icon" data-move="{{ direction }}" {% if disabled %}disabled{% endif %}
+    aria-label="Move {{ r.name }} {{ direction }}">{{ icon("arrow-" ~ direction) }}</button>
+</form>
+{%- endmacro %}
+
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">My Top 5 {{ info.name }}</h1>
+  <p class="page-subtitle">Rank your favourite {{ info.name }} restaurants. Your rankings feed into the <a href="{{ url_for('top5.community', cuisine=cuisine) }}">Community Top 5</a>.</p>
+</header>
+
+<form class="row" method="get" action="{{ url_for('top5.mine') }}" style="margin-bottom: var(--space-6); align-items: end;">
+  <div>
+    <label class="label" for="cuisine-picker">Cuisine</label>
+    <select class="select" id="cuisine-picker" name="cuisine" data-autosubmit style="min-width: 14rem">
+      {% for c in C.CUISINES %}
+      <option value="{{ c.slug }}" {% if c.slug == cuisine %}selected{% endif %}>{{ c.name }}{% if lists.get(c.slug) %} ({{ lists[c.slug] }} ranked){% endif %}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <button class="btn btn-outline no-js-submit" type="submit" style="margin-top:0">Show list</button>
+</form>
+
+<div class="top5-layout">
+  <section aria-labelledby="list-title">
+    <div class="section-header">
+      <h2 class="section-title" id="list-title">Your ranking</h2>
+      <p class="save-status" id="save-status" role="status" aria-live="polite"></p>
+    </div>
+    {% if entries %}
+    <p class="muted text-sm" id="reorder-help" style="margin-bottom: var(--space-3)">Use the arrow buttons to change the order{% if entries|length > 1 %}, or drag a row by its handle{% endif %}. Changes save automatically.</p>
+    <ol class="top5-list" role="list" id="top5-list" data-order-url="{{ url_for('top5.order', cuisine=cuisine) }}" aria-describedby="reorder-help">
+      {% for r in entries %}
+      <li class="top5-item" data-id="{{ r.id }}" data-name="{{ r.name }}">
+        <span class="rank" aria-hidden="true">{{ loop.index }}</span>
+        <img class="top5-thumb" src="{{ r.photo_url }}" alt="" loading="lazy" data-fallback="{{ info.emoji }}">
+        <div>
+          <a class="top5-name" href="{{ url_for('restaurants.detail', rid=r.id) }}"><span class="sr-only" data-rank-label>Rank {{ loop.index }}: </span>{{ r.name }}</a>
+          <div class="text-sm muted">{{ rating(r) }}</div>
+        </div>
+        <div class="top5-controls">
+          <span class="btn btn-ghost btn-icon drag-handle" draggable="true" aria-hidden="true" title="Drag to reorder">{{ icon("grip") }}</span>
+          {{ move_form(r, "up", loop.first) }}
+          {{ move_form(r, "down", loop.last) }}
+          <form method="post" action="{{ url_for('top5.remove', cuisine=cuisine) }}">
+            {{ csrf() }}
+            <input type="hidden" name="restaurant_id" value="{{ r.id }}">
+            <button type="submit" class="btn btn-ghost btn-icon" data-remove aria-label="Remove {{ r.name }} from your Top 5">{{ icon("trash") }}</button>
+          </form>
+        </div>
+      </li>
+      {% endfor %}
+    </ol>
+    {% for i in range(entries|length + 1, C.TOP5_SIZE + 1) %}
+    <div class="slot-empty" style="margin-top: var(--space-3)" data-empty-slot><span class="rank" aria-hidden="true">{{ i }}</span>Empty spot</div>
+    {% endfor %}
+    {% else %}
+    <div class="empty">
+      <div class="empty-icon">{{ icon("trophy", "icon-lg") }}</div>
+      <h3 class="empty-title">Your {{ info.name }} list is empty</h3>
+      <p>Add up to {{ C.TOP5_SIZE }} restaurants using the form{% if available %} next to this list{% endif %}. You can reorder them any time.</p>
+    </div>
+    {% endif %}
+  </section>
+
+  <aside aria-labelledby="add-title">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title" id="add-title">Add a restaurant</h2>
+        <p class="card-description">{{ entries|length }} of {{ C.TOP5_SIZE }} spots used.</p>
+      </div>
+      <div class="card-content">
+        {% if entries|length >= C.TOP5_SIZE %}
+        <div class="alert" role="note">{{ icon("info") }}<p>Your list is full. Remove a restaurant to add a different one.</p></div>
+        {% elif available %}
+        <form method="post" action="{{ url_for('top5.add', cuisine=cuisine) }}">
+          {{ csrf() }}
+          <div class="field">
+            <label class="label" for="restaurant_id">{{ info.name }} restaurant</label>
+            <select class="select" id="restaurant_id" name="restaurant_id" required>
+              {% for r in available %}<option value="{{ r.id }}">{{ r.name }}{% if r.avg_overall %} · {{ r.avg_overall|rating }}★{% endif %}</option>{% endfor %}
+            </select>
+          </div>
+          <button class="btn btn-default btn-block" type="submit">{{ icon("plus") }}Add at #{{ entries|length + 1 }}</button>
+        </form>
+        {% else %}
+        <p class="muted text-sm">You've ranked every {{ info.name }} restaurant we list.</p>
+        {% endif %}
+      </div>
+    </div>
+  </aside>
+</div>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/top5.js') }}"></script>{% endblock %}

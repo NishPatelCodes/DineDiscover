@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon with context %}
+{% from "_card.html" import card_grid with context %}
+{% block title %}Find restaurants by cuisine{% endblock %}
+{% block content %}
+<section class="hero" aria-labelledby="hero-title">
+  <h1 id="hero-title">What are you <em>craving</em> tonight?</h1>
+  <p>Search Halifax restaurants by cuisine, compare your options side by side, and see what the community ranks in its Top 5.</p>
+
+  <form class="search-panel" action="{{ url_for('restaurants.search') }}" method="get" role="search" aria-label="Find restaurants">
+    <div>
+      <label class="label" for="q">Search</label>
+      <div class="input-group">
+        {{ icon("search") }}
+        <input class="input" id="q" name="q" type="search" placeholder="Restaurant, dish or area" autocomplete="off" data-search-shortcut aria-describedby="q-shortcut">
+        <span class="kbd" aria-hidden="true">/</span>
+      </div>
+      <span class="sr-only" id="q-shortcut">Press slash to jump here from anywhere on the page.</span>
+    </div>
+    <div>
+      <label class="label" for="cuisine">Cuisine</label>
+      <select class="select" id="cuisine" name="cuisine">
+        <option value="">All cuisines</option>
+        {% for c in C.CUISINES %}<option value="{{ c.slug }}">{{ c.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="label" for="near">Near</label>
+      <select class="select" id="near" name="near">
+        {% for slug, n in C.NEIGHBOURHOODS.items() %}<option value="{{ slug }}" {% if slug == near %}selected{% endif %}>{{ n.name }}</option>{% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-brand btn-lg" type="submit">{{ icon("search") }}Search</button>
+  </form>
+
+  {% if recent_searches %}
+  <div class="recent-searches">
+    <span class="muted">{{ icon("history") }}</span>
+    <h2 class="sr-only">Recent searches</h2>
+    <span class="muted">Recent:</span>
+    <ul class="row" role="list">
+      {% for s in recent_searches %}<li><a class="chip" href="{{ s.url }}">{{ s.label }}</a></li>{% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>
+
+<section class="section" aria-labelledby="cuisines-title">
+  <div class="section-header">
+    <h2 class="section-title" id="cuisines-title">Browse by cuisine</h2>
+    <a class="btn btn-ghost btn-sm" href="{{ url_for('restaurants.search') }}">See all restaurants{{ icon("arrow-right") }}</a>
+  </div>
+  <ul class="cuisine-grid" role="list">
+    {% for c in C.CUISINES %}
+    <li>
+      <a class="cuisine-card" href="{{ url_for('restaurants.search', cuisine=c.slug, near=near) }}">
+        <span class="cuisine-emoji" aria-hidden="true">{{ c.emoji }}</span>
+        <span class="cuisine-name">{{ c.name }}</span>
+        <span class="cuisine-count">{{ counts.get(c.slug, 0) }} restaurant{{ '' if counts.get(c.slug, 0) == 1 else 's' }}</span>
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+
+{% if recent_views %}
+<section class="section" aria-labelledby="recent-title">
+  <div class="section-header">
+    <h2 class="section-title" id="recent-title">Recently viewed</h2>
+  </div>
+  {{ card_grid(recent_views[:4], favorite_ids, compare_set) }}
+</section>
+{% endif %}
+
+<section class="section" aria-labelledby="top-title">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title" id="top-title">Highest rated right now</h2>
+      <p class="muted text-sm">Based on DineDiscover reviews. Distances from {{ C.NEIGHBOURHOODS[near].name }}.</p>
+    </div>
+    <a class="btn btn-outline btn-sm" href="{{ url_for('top5.community') }}">{{ icon("trophy") }}Community Top 5</a>
+  </div>
+  {{ card_grid(top_rated, favorite_ids, compare_set) }}
+</section>
+{% endblock %}

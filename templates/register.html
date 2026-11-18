@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, input, csrf with context %}
+{% block title %}Create an account{% endblock %}
+{% block content %}
+<div class="card auth-card">
+  <div class="card-header">
+    <h1 class="card-title" style="font-size: var(--text-2xl)">Create your account</h1>
+    <p class="card-description">It takes less than a minute. All fields are required.</p>
+  </div>
+  <div class="card-content">
+    {% include "_error_summary.html" %}
+    <form method="post" action="{{ url_for('auth.register') }}" novalidate {% if errors %}style="margin-top: var(--space-5)"{% endif %}>
+      {{ csrf() }}
+      <input type="hidden" name="next" value="{{ next_url }}">
+      {{ input("username", "Username", errors, values.get("username", ""), hint="3 to 30 letters, numbers or underscores. Shown on your reviews.", autocomplete="username", attrs="autocapitalize=none spellcheck=false maxlength=30") }}
+      {{ input("email", "Email", errors, values.get("email", ""), type="email", autocomplete="email", attrs="spellcheck=false") }}
+      {{ input("password", "Password", errors, type="password", hint="At least 8 characters.", autocomplete="new-password") }}
+      {{ input("confirm", "Confirm password", errors, type="password", autocomplete="new-password") }}
+      <button class="btn btn-default btn-block" type="submit">Create account</button>
+    </form>
+  </div>
+  <div class="card-footer" style="justify-content: center;">
+    <p class="text-sm muted">Already have an account? <a href="{{ url_for('auth.login', next=next_url) }}">Log in</a></p>
+  </div>
+</div>
+{% endblock %}

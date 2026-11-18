@@ -1,0 +1,8 @@
+{% from "components/ui.html" import stars with context %}
+<div class="review-scores">
+  <span class="badge badge-default">{{ stars(v.overall) }}<span>{{ v.overall }}/5 overall</span></span>
+  {% for key, label in C.RATING_CATEGORIES %}
+  <span class="badge badge-secondary">{{ label }} {{ v[key] }}/5</span>
+  {% endfor %}
+</div>
+<p class="review-body">{{ v.body }}</p>

@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, stars, input, star_input, empty_state with context %}
+{% from "_card.html" import restaurant_card with context %}
+{% block title %}Styleguide{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">Styleguide</h1>
+  <p class="page-subtitle">Every UI component used in DineDiscover. Toggle the theme in the header to check dark mode.</p>
+</header>
+
+<section class="sg-section" aria-labelledby="sg-colors">
+  <h2 id="sg-colors">Color tokens</h2>
+  <div class="swatches">
+    {% for t in ["background", "foreground", "card", "primary", "secondary", "muted", "muted-foreground", "accent", "destructive", "border", "input", "ring", "brand", "star"] %}
+    <div class="swatch"><div style="background: var(--{{ t }})"></div><p>--{{ t }}</p></div>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-type">
+  <h2 id="sg-type">Typography</h2>
+  <div class="stack">
+    <p class="page-title">Page title, 30px bold</p>
+    <p class="section-title">Section title, 20px semibold</p>
+    <p class="card-title">Card title, 18px semibold</p>
+    <p>Body text, 16px regular. The quick brown fox jumps over the lazy dog.</p>
+    <p class="muted text-sm">Muted helper text, 14px.</p>
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-buttons">
+  <h2 id="sg-buttons">Buttons</h2>
+  <div class="sg-row">
+    <button class="btn btn-default">Default</button>
+    <button class="btn btn-brand">Brand</button>
+    <button class="btn btn-secondary">Secondary</button>
+    <button class="btn btn-outline">Outline</button>
+    <button class="btn btn-ghost">Ghost</button>
+    <button class="btn btn-destructive">Destructive</button>
+    <button class="btn btn-link">Link</button>
+    <button class="btn btn-default" disabled>Disabled</button>
+  </div>
+  <div class="sg-row" style="margin-top: var(--space-3)">
+    <button class="btn btn-outline btn-sm">Small</button>
+    <button class="btn btn-outline">Medium</button>
+    <button class="btn btn-outline btn-lg">Large</button>
+    <button class="btn btn-outline btn-icon" aria-label="Search">{{ icon("search") }}</button>
+    <button class="btn btn-outline btn-icon btn-favorite" aria-pressed="true" aria-label="Favorite example">{{ icon("heart") }}</button>
+    <button class="btn btn-outline btn-icon" data-tooltip="Tooltip example" aria-label="Info">{{ icon("info") }}</button>
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-forms">
+  <h2 id="sg-forms">Form controls</h2>
+  <div class="card card-content narrow" style="margin: 0">
+    {{ input("sg-name", "Text input", {}, hint="Helper text describes the field.", required=false) }}
+    {{ input("sg-error", "Input with error", {"sg-error": "This field shows an error message."}, required=false) }}
+    <div class="field">
+      <label class="label" for="sg-select">Select</label>
+      <select class="select" id="sg-select"><option>Option one</option><option>Option two</option></select>
+    </div>
+    <div class="field">
+      <label class="label" for="sg-textarea">Textarea</label>
+      <textarea class="textarea" id="sg-textarea" placeholder="Write something..."></textarea>
+    </div>
+    <label class="check"><input type="checkbox" checked> Checkbox</label>
+    <label class="switch"><input type="checkbox" role="switch" checked> Switch</label>
+    <div class="field">
+      <label class="label" for="sg-slider">Slider</label>
+      <input class="slider" type="range" id="sg-slider" min="0" max="10" value="4">
+    </div>
+    <fieldset class="field">
+      <legend class="label">Toggle group</legend>
+      <div class="toggle-group">
+        {% for p in range(1, 5) %}
+        <label class="toggle"><input type="checkbox" {% if p == 2 %}checked{% endif %}><span><span aria-hidden="true">{{ p|price }}</span><span class="sr-only">{{ C.PRICE_LABELS[p] }}</span></span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    {{ star_input("sg-stars", "Star rating input", {}, 4) }}
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-display">
+  <h2 id="sg-display">Display</h2>
+  <div class="sg-row">
+    <span class="badge badge-default">Default</span>
+    <span class="badge badge-secondary">Secondary</span>
+    <span class="badge badge-outline">Outline</span>
+    <span class="badge badge-brand">Brand</span>
+    <span class="avatar" aria-hidden="true">ND</span>
+    <span>{{ stars(4) }}</span>
+    <span class="kbd">/</span>
+  </div>
+  <hr class="separator">
+  <div class="stack">
+    <div class="alert" role="note">{{ icon("info") }}<div><p class="alert-title">Alert</p><p>Neutral information for the user.</p></div></div>
+    <div class="alert alert-destructive" role="note">{{ icon("alert") }}<div><p class="alert-title">Destructive alert</p><p>Used for error summaries.</p></div></div>
+  </div>
+  <hr class="separator">
+  <div class="sg-row" aria-hidden="true">
+    <div class="skeleton" style="width: 12rem; height: 7rem"></div>
+    <div style="flex:1; min-width: 12rem" class="stack">
+      <div class="skeleton" style="height: 1rem; width: 70%"></div>
+      <div class="skeleton" style="height: 1rem; width: 40%"></div>
+    </div>
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-tabs">
+  <h2 id="sg-tabs">Tabs</h2>
+  <div class="tabs-list" role="tablist" aria-label="Example tabs">
+    <button class="tabs-trigger" role="tab" id="sg-tab-1" aria-controls="sg-panel-1" aria-selected="true">Account</button>
+    <button class="tabs-trigger" role="tab" id="sg-tab-2" aria-controls="sg-panel-2" aria-selected="false" tabindex="-1">Password</button>
+  </div>
+  <div class="tabs-panel" role="tabpanel" id="sg-panel-1" aria-labelledby="sg-tab-1" tabindex="0">First panel. Use arrow keys to switch tabs.</div>
+  <div class="tabs-panel" role="tabpanel" id="sg-panel-2" aria-labelledby="sg-tab-2" tabindex="0" hidden>Second panel.</div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-overlays">
+  <h2 id="sg-overlays">Dialog, sheet and toast</h2>
+  <div class="sg-row">
+    <button class="btn btn-outline" data-dialog-open="sg-dialog">Open dialog</button>
+    <button class="btn btn-outline" data-dialog-open="sg-sheet">Open sheet</button>
+    <button class="btn btn-outline" id="sg-toast">Show toast</button>
+    <button class="btn btn-outline" id="sg-toast-error">Show error toast</button>
+  </div>
+  <dialog class="dialog" id="sg-dialog" aria-labelledby="sg-dialog-title">
+    <div class="dialog-content">
+      <h2 class="dialog-title" id="sg-dialog-title">Dialog title</h2>
+      <p class="dialog-description">Focus stays inside the dialog. Escape or Cancel closes it and returns focus to the button.</p>
+      <div class="dialog-footer">
+        <button class="btn btn-outline" data-dialog-close>Cancel</button>
+        <button class="btn btn-default" data-dialog-close>Continue</button>
+      </div>
+    </div>
+  </dialog>
+  <dialog class="sheet" id="sg-sheet" aria-labelledby="sg-sheet-title">
+    <div class="sheet-header">
+      <h2 class="card-title" id="sg-sheet-title">Sheet</h2>
+      <button class="btn btn-ghost btn-icon" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+    </div>
+    <div class="sheet-body"><p>Used for mobile navigation and filters.</p></div>
+  </dialog>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-cards">
+  <h2 id="sg-cards">Cards and empty state</h2>
+  <div class="card-grid">
+    {% if sample %}{{ restaurant_card(sample, favorite_ids, compare_set) }}{% endif %}
+    <div class="card">
+      <div class="card-header"><h3 class="card-title">Card title</h3><p class="card-description">Card description text.</p></div>
+      <div class="card-content">Card content goes here.</div>
+      <div class="card-footer"><button class="btn btn-default btn-sm">Action</button></div>
+    </div>
+  </div>
+  <div style="margin-top: var(--space-6)">
+    {% call empty_state("search", "No restaurants match", "Empty states explain what happened and offer a way forward.") %}
+    <button class="btn btn-outline">Clear filters</button>
+    {% endcall %}
+  </div>
+</section>
+
+<section class="sg-section" aria-labelledby="sg-table">
+  <h2 id="sg-table">Table</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th scope="col">Restaurant</th><th scope="col">Rating</th><th scope="col">Price</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Example A</th><td>4.6</td><td>$$</td></tr>
+        <tr><th scope="row">Example B</th><td>4.1</td><td>$</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+  document.getElementById("sg-toast").addEventListener("click", function () {
+    DD.toast("Saved to favorites.", { action: { label: "Undo", onClick: function () { DD.toast("Undone.", { type: "info" }); } } });
+  });
+  document.getElementById("sg-toast-error").addEventListener("click", function () {
+    DD.toast("Something went wrong. Please try again.", { type: "error" });
+  });
+</script>
+{% endblock %}

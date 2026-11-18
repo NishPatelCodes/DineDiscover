@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, input, csrf with context %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<div class="card auth-card">
+  <div class="card-header">
+    <h1 class="card-title" style="font-size: var(--text-2xl)">Welcome back</h1>
+    <p class="card-description">Log in to save favorites, write reviews and build your Top 5 lists.</p>
+  </div>
+  <div class="card-content">
+    {% include "_error_summary.html" %}
+    <form method="post" action="{{ url_for('auth.login') }}" novalidate {% if errors %}style="margin-top: var(--space-5)"{% endif %}>
+      {{ csrf() }}
+      <input type="hidden" name="next" value="{{ next_url }}">
+      {{ input("login", "Username or email", errors, values.get("login", ""), autocomplete="username", attrs="autocapitalize=none spellcheck=false") }}
+      {{ input("password", "Password", errors, type="password", autocomplete="current-password") }}
+      <button class="btn btn-default btn-block" type="submit">Log in</button>
+    </form>
+  </div>
+  <div class="card-footer" style="justify-content: center; flex-direction: column;">
+    <p class="text-sm muted">New to DineDiscover? <a href="{{ url_for('auth.register', next=next_url) }}">Create an account</a></p>
+    <p class="text-xs muted">Demo account: <strong>priya</strong> / <strong>dinediscover</strong></p>
+  </div>
+</div>
+{% endblock %}

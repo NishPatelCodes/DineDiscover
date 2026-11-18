@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon with context %}
+{% from "_card.html" import restaurant_card with context %}
+{% block title %}Your favorites{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">Your favorites</h1>
+  <p class="page-subtitle" data-favorites-count>{{ items|length }} saved restaurant{{ '' if items|length == 1 else 's' }}</p>
+</header>
+
+<ul class="card-grid" role="list" data-favorites-list {% if not items %}hidden{% endif %}>
+  {% for r in items %}<li>{{ restaurant_card(r, favorite_ids, compare_set, "h2") }}</li>{% endfor %}
+</ul>
+
+<div data-favorites-empty {% if items %}hidden{% endif %}>
+  <div class="empty">
+    <div class="empty-icon">{{ icon("heart", "icon-lg") }}</div>
+    <h2 class="empty-title">No favorites yet</h2>
+    <p>Tap the heart on any restaurant to save it here, so you can find it again quickly.</p>
+    <div class="empty-actions"><a class="btn btn-default" href="{{ url_for('restaurants.search') }}">{{ icon("compass") }}Discover restaurants</a></div>
+  </div>
+</div>
+{% endblock %}

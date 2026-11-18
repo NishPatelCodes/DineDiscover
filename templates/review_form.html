@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, star_input, field_error, csrf with context %}
+{% block title %}{{ "Edit your review" if is_edit else "Review" }} {{ r.name }}{% endblock %}
+{% block content %}
+<div class="narrow">
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <ol role="list">
+      <li><a href="{{ url_for('restaurants.home') }}">Home</a></li>
+      <li><a href="{{ url_for('restaurants.detail', rid=r.id) }}">{{ r.name }}</a></li>
+      <li><span aria-current="page">{{ "Edit review" if is_edit else "Write a review" }}</span></li>
+    </ol>
+  </nav>
+
+  <header class="page-header" style="margin-top: var(--space-4)">
+    <h1 class="page-title">{{ "Edit your review" if is_edit else "Review " ~ r.name }}</h1>
+    <p class="page-subtitle">Rate each category from 1 to 5 stars, then tell others about your visit.</p>
+  </header>
+
+  {% set anchors = {"taste": "taste-1", "service": "service-1", "authenticity": "authenticity-1", "value": "value-1", "overall": "overall-1"} %}
+  {% include "_error_summary.html" %}
+
+  <form class="card card-content" method="post" action="{{ url_for('reviews.edit', rid=r.id) }}" novalidate style="margin-top: var(--space-6)">
+    {{ csrf() }}
+    {% set prompts = {
+      "taste": "Taste: how good was the food?",
+      "service": "Service: how were the staff?",
+      "authenticity": "Authenticity: how true to the cuisine?",
+      "value": "Value: was it worth the price?",
+      "overall": "Overall rating",
+    } %}
+    {% for key, label in rating_fields %}
+    {{ star_input(key, prompts[key], errors, values.get(key)) }}
+    {% endfor %}
+
+    <div class="field" style="margin-top: var(--space-4)">
+      <label class="label" for="body">Your review <span class="muted">(required)</span></label>
+      <p class="hint" id="body-hint" style="margin: 0 0 var(--space-2)">What did you order? What stood out? {{ body_min }} to {{ body_max }} characters.</p>
+      <textarea class="textarea" id="body" name="body" maxlength="{{ body_max }}" required aria-required="true"
+        aria-describedby="body-hint{% if errors.body %} body-error{% endif %}" {% if errors.body %}aria-invalid="true"{% endif %}
+        data-char-count="body-count">{{ values.get("body", "") }}</textarea>
+      <p class="char-count" id="body-count" aria-hidden="true"></p>
+      {{ field_error("body", errors) }}
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-default" type="submit">{{ icon("check") }}{{ "Save changes" if is_edit else "Post review" }}</button>
+      <a class="btn btn-outline" href="{{ url_for('restaurants.detail', rid=r.id) }}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

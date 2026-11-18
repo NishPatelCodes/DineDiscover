@@ -1,0 +1,179 @@
+{% from "components/ui.html" import icon, csrf with context %}
+{% set nav = [
+  ("restaurants.search", "Discover", "compass"),
+  ("top5.community", "Community Top 5", "trophy"),
+  ("top5.mine", "My Top 5", "list"),
+  ("me.favorites", "Favorites", "heart"),
+  ("me.compare", "Compare", "scale"),
+] %}
+{% macro nav_links() -%}
+<ul role="list">
+  {% for endpoint, label, icon_name in nav %}
+  <li>
+    <a class="nav-link" href="{{ url_for(endpoint) }}" {% if request.endpoint == endpoint %}aria-current="page"{% endif %}>
+      {{ icon(icon_name) }}{{ label }}
+      {% if endpoint == "me.compare" %}<span class="nav-count" data-compare-count {% if not compare_items %}hidden{% endif %}>{{ compare_items|length }}<span class="sr-only"> selected</span></span>{% endif %}
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{%- endmacro %}
+<!doctype html>
+<html lang="en-CA">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <meta name="color-scheme" content="light dark">
+  <title>{% block title %}DineDiscover{% endblock %} · DineDiscover</title>
+  <meta name="description" content="Find restaurants in Halifax by cuisine, compare them, and build your own Top 5 lists.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍽️</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/layout.css') }}">
+  <script src="{{ url_for('static', filename='js/theme.js') }}"></script>
+</head>
+<body class="{% if compare_items and request.endpoint != 'me.compare' %}has-tray{% endif %}">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container">
+      <a class="logo" href="{{ url_for('restaurants.home') }}" {% if request.endpoint == 'restaurants.home' %}aria-current="page"{% endif %}>
+        <span class="logo-mark">{{ icon("utensils") }}</span>
+        DineDiscover
+      </a>
+      <nav class="main-nav" aria-label="Main">{{ nav_links() }}</nav>
+
+      <div class="header-actions">
+        <button type="button" class="btn btn-ghost btn-icon" id="theme-toggle" aria-label="Switch to dark theme" data-tooltip="Toggle theme">
+          <span class="theme-icon-light">{{ icon("moon") }}</span>
+          <span class="theme-icon-dark" hidden>{{ icon("sun") }}</span>
+        </button>
+
+        {% if current_user %}
+        <div class="dropdown" data-dropdown>
+          <button type="button" class="btn btn-ghost" id="account-button" aria-haspopup="menu" aria-expanded="false" aria-controls="account-menu">
+            <span class="avatar" aria-hidden="true">{{ current_user.username[:2] }}</span>
+            <span class="sr-only">Account menu for {{ current_user.username }}</span>
+            {{ icon("chevron-down") }}
+          </button>
+          <ul class="dropdown-menu" id="account-menu" role="menu" aria-labelledby="account-button" hidden>
+            <li role="none" class="dropdown-label">{{ current_user.username }}<span>{{ current_user.email }}</span></li>
+            <li role="none" class="dropdown-separator"></li>
+            <li role="none"><a role="menuitem" tabindex="-1" class="dropdown-item" href="{{ url_for('me.favorites') }}">{{ icon("heart") }}Favorites</a></li>
+            <li role="none"><a role="menuitem" tabindex="-1" class="dropdown-item" href="{{ url_for('top5.mine') }}">{{ icon("list") }}My Top 5 lists</a></li>
+            <li role="none" class="dropdown-separator"></li>
+            <li role="none">
+              <form method="post" action="{{ url_for('auth.logout') }}">
+                {{ csrf() }}
+                <button role="menuitem" tabindex="-1" type="submit" class="dropdown-item">{{ icon("log-out") }}Log out</button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        {% else %}
+        <div class="header-auth">
+          <a class="btn btn-ghost" href="{{ url_for('auth.login', next=current_path()) }}">Log in</a>
+          <a class="btn btn-default" href="{{ url_for('auth.register', next=current_path()) }}">Sign up</a>
+        </div>
+        {% endif %}
+
+        <button type="button" class="btn btn-outline btn-icon menu-toggle" data-dialog-open="mobile-nav" aria-label="Open menu">
+          {{ icon("menu") }}
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <dialog class="sheet" id="mobile-nav" aria-labelledby="mobile-nav-title">
+    <div class="sheet-header">
+      <h2 id="mobile-nav-title" class="card-title">Menu</h2>
+      <button type="button" class="btn btn-ghost btn-icon" data-dialog-close aria-label="Close menu">{{ icon("x") }}</button>
+    </div>
+    <div class="sheet-body">
+      <nav class="mobile-nav" aria-label="Main (mobile)">{{ nav_links() }}</nav>
+    </div>
+    {% if not current_user %}
+    <div class="sheet-footer row">
+      <a class="btn btn-outline" href="{{ url_for('auth.login', next=current_path()) }}">Log in</a>
+      <a class="btn btn-default" href="{{ url_for('auth.register', next=current_path()) }}">Sign up</a>
+    </div>
+    {% endif %}
+  </dialog>
+
+  <main id="main" tabindex="-1">
+    <div class="container">
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>DineDiscover · Cuisine-based restaurant discovery for Halifax, NS.</p>
+      <p>Restaurant listings from <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>. Demo reviews are sample data. Photos from <a href="https://unsplash.com">Unsplash</a>.</p>
+    </div>
+  </footer>
+
+  {% if request.endpoint != 'me.compare' %}
+  <aside class="compare-tray" id="compare-tray" aria-labelledby="compare-tray-title" {% if not compare_items %}hidden{% endif %}>
+    <h2 id="compare-tray-title">Compare <span data-compare-tray-count>({{ compare_items|length }}/{{ C.MAX_COMPARE }})</span></h2>
+    <ul role="list" data-compare-tray-list>
+      {% for item in compare_items %}
+      <li>
+        {{ item.name }}
+        <form method="post" action="{{ url_for('me.toggle_compare', rid=item.id) }}">
+          {{ csrf() }}<input type="hidden" name="compare" value="0">
+          <button type="submit" class="btn btn-ghost btn-icon" data-compare data-id="{{ item.id }}" data-name="{{ item.name }}" aria-pressed="true" aria-label="Remove {{ item.name }} from compare">{{ icon("x") }}</button>
+        </form>
+      </li>
+      {% endfor %}
+    </ul>
+    <div class="compare-tray-actions">
+      <a class="btn btn-default btn-sm" href="{{ url_for('me.compare') }}">{{ icon("scale") }}Compare now</a>
+    </div>
+  </aside>
+  {% endif %}
+
+  <section class="toaster" aria-label="Notifications">
+    <ol id="toaster" aria-live="polite" aria-relevant="additions"></ol>
+  </section>
+  <div id="sr-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+
+  <dialog class="dialog" id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <div class="dialog-content">
+      <h2 class="dialog-title" id="confirm-title">Are you sure?</h2>
+      <p class="dialog-description" id="confirm-message"></p>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close autofocus>Cancel</button>
+        <button type="button" class="btn btn-destructive" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </dialog>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <script type="application/json" id="flash-data">{{ messages|tojson }}</script>
+  <noscript>
+    <div class="container">
+      {% for category, message in messages %}<p class="alert">{{ message }}</p>{% endfor %}
+    </div>
+  </noscript>
+  {% endif %}
+  {% endwith %}
+
+  <template id="icon-templates">
+    <span data-icon="check-circle">{{ icon("check-circle", "toast-icon") }}</span>
+    <span data-icon="alert">{{ icon("alert", "toast-icon") }}</span>
+    <span data-icon="info">{{ icon("info", "toast-icon") }}</span>
+    <span data-icon="x">{{ icon("x") }}</span>
+  </template>
+
+  <script src="{{ url_for('static', filename='js/ui.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/favorites.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/compare.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

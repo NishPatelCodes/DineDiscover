@@ -1,0 +1,73 @@
+{% from "components/ui.html" import icon with context %}
+<form class="filters-panel" id="filters-form" action="{{ url_for('restaurants.search') }}" method="get" role="search" aria-label="Filter restaurants">
+  <div>
+    <label class="filter-group-title" for="f-q">Search</label>
+    <div class="input-group">
+      {{ icon("search") }}
+      <input class="input" type="search" id="f-q" name="q" value="{{ filters.q }}" placeholder="Name, dish or area" autocomplete="off" data-search-shortcut>
+    </div>
+  </div>
+
+  <div>
+    <label class="filter-group-title" for="f-cuisine">Cuisine</label>
+    <select class="select" id="f-cuisine" name="cuisine">
+      <option value="">All cuisines</option>
+      {% for c in C.CUISINES %}<option value="{{ c.slug }}" {% if filters.cuisine == c.slug %}selected{% endif %}>{{ c.name }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <label class="filter-group-title" for="f-near">Distance from</label>
+    <select class="select" id="f-near" name="near">
+      {% for slug, n in C.NEIGHBOURHOODS.items() %}<option value="{{ slug }}" {% if near == slug %}selected{% endif %}>{{ n.name }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div>
+    <div class="filter-group-title">
+      <label for="f-max-km">Max distance</label>
+      <output for="f-max-km" id="f-max-km-out">{{ (filters.max_km|int ~ " km") if filters.max_km else "Any" }}</output>
+    </div>
+    <input class="slider" type="range" id="f-max-km" name="max_km" min="1" max="{{ C.MAX_DISTANCE_KM }}" step="1"
+      value="{{ filters.max_km|int if filters.max_km else C.MAX_DISTANCE_KM }}"
+      aria-valuetext="{{ ('Within ' ~ filters.max_km|int ~ ' kilometres') if filters.max_km else 'Any distance' }}"
+      data-any="{{ C.MAX_DISTANCE_KM }}">
+  </div>
+
+  <fieldset>
+    <legend class="filter-group-title">Minimum rating</legend>
+    <div class="toggle-group">
+      {% for value, label in C.MIN_RATINGS %}
+      {% set checked = (filters.min_rating and value and filters.min_rating == value|float) or (not filters.min_rating and not value) %}
+      <label class="toggle"><input type="radio" name="min_rating" value="{{ value }}" {% if checked %}checked{% endif %}><span>{% if value %}{{ icon("star") }}{% endif %}{{ label }}{% if value %}<span class="sr-only"> stars</span>{% endif %}</span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend class="filter-group-title">Price</legend>
+    <div class="toggle-group">
+      {% for p in range(1, 5) %}
+      <label class="toggle"><input type="checkbox" name="price" value="{{ p }}" {% if p in filters.prices %}checked{% endif %}><span><span aria-hidden="true">{{ p|price }}</span><span class="sr-only">{{ C.PRICE_LABELS[p] }}</span></span></label>
+      {% endfor %}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend class="filter-group-title">Dietary</legend>
+    {% for value, label in C.DIETARY %}
+    <label class="check"><input type="checkbox" name="diet" value="{{ value }}" {% if value in filters.diets %}checked{% endif %}>{{ label }}</label>
+    {% endfor %}
+  </fieldset>
+
+  <div>
+    <label class="filter-group-title" for="f-sort">Sort by</label>
+    <select class="select" id="f-sort" name="sort">
+      {% for value, label in C.SORTS %}<option value="{{ value }}" {% if filters.sort == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+  </div>
+
+  <div class="no-js-submit">
+    <button class="btn btn-default btn-block" type="submit">Apply filters</button>
+  </div>
+</form>

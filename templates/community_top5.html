@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, rating with context %}
+{% block title %}Community Top 5{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">Community Top 5</h1>
+  <p class="page-subtitle">The restaurants DineDiscover members rank highest for each cuisine.</p>
+</header>
+
+<div class="tabs-list" role="tablist" aria-label="Cuisines" data-sync-param="cuisine">
+  {% for b in boards %}
+  {% set is_selected = b.cuisine.slug == selected %}
+  <a class="tabs-trigger" role="tab" id="tab-{{ b.cuisine.slug }}" href="{{ url_for('top5.community', cuisine=b.cuisine.slug) }}"
+    aria-controls="panel-{{ b.cuisine.slug }}" aria-selected="{{ 'true' if is_selected else 'false' }}"
+    {% if not is_selected %}tabindex="-1"{% endif %} data-value="{{ b.cuisine.slug }}">
+    <span aria-hidden="true">{{ b.cuisine.emoji }}</span>{{ b.cuisine.name }}
+  </a>
+  {% endfor %}
+</div>
+
+{% for b in boards %}
+{% set is_selected = b.cuisine.slug == selected %}
+<section class="tabs-panel" role="tabpanel" id="panel-{{ b.cuisine.slug }}" aria-labelledby="tab-{{ b.cuisine.slug }}" tabindex="0" {% if not is_selected %}hidden{% endif %}>
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Top {{ b.cuisine.name }} restaurants</h2>
+      <p class="muted text-sm">{{ icon("users") }} Based on {{ b.voters }} member list{{ '' if b.voters == 1 else 's' }}. A #1 ranking earns 5 points, #2 earns 4, down to 1 point for #5.</p>
+    </div>
+    {% if current_user %}
+    <a class="btn btn-outline btn-sm" href="{{ url_for('top5.mine', cuisine=b.cuisine.slug) }}">{{ icon("list") }}Edit my {{ b.cuisine.name }} list</a>
+    {% else %}
+    <a class="btn btn-outline btn-sm" href="{{ url_for('auth.login', next=url_for('top5.mine', cuisine=b.cuisine.slug)) }}">Log in to add your ranking</a>
+    {% endif %}
+  </div>
+
+  {% if b.entries %}
+  <ol class="stack" role="list">
+    {% for r in b.entries %}
+    <li class="card community-item">
+      <span class="rank" aria-hidden="true">{{ loop.index }}</span>
+      <img src="{{ r.photo_url }}" alt="" loading="lazy" data-fallback="{{ b.cuisine.emoji }}">
+      <div>
+        <h3 class="community-title"><a class="top5-name" href="{{ url_for('restaurants.detail', rid=r.id) }}"><span class="sr-only">Rank {{ loop.index }}: </span>{{ r.name }}</a></h3>
+        <div class="text-sm">{{ rating(r) }}</div>
+        <p class="text-sm muted">{{ r.neighbourhood }} · <span aria-hidden="true">{{ r.price_level|price }}</span><span class="sr-only">{{ C.PRICE_LABELS[r.price_level] }}</span></p>
+      </div>
+      <div class="points">
+        <strong>{{ r.points }}</strong>
+        <span class="text-xs muted">points · {{ r.voters }} list{{ '' if r.voters == 1 else 's' }}{% if r.first_place %} · {{ r.first_place }}× #1{% endif %}</span>
+      </div>
+    </li>
+    {% endfor %}
+  </ol>
+  {% else %}
+  <div class="empty">
+    <div class="empty-icon">{{ icon("trophy", "icon-lg") }}</div>
+    <h3 class="empty-title">No rankings yet</h3>
+    <p>Nobody has ranked {{ b.cuisine.name }} restaurants yet. Be the first.</p>
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+{% endblock %}

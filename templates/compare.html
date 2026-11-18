@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon, stars, price, csrf, empty_state with context %}
+{% block title %}Compare restaurants{% endblock %}
+
+{% macro cell(r, key, text) -%}
+{% if r.id in best.get(key, ()) %}
+<span class="best">{{ text }} <span class="badge badge-brand">{{ icon("check") }}Best</span></span>
+{% else %}{{ text }}{% endif %}
+{%- endmacro %}
+
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">Compare restaurants</h1>
+  <p class="page-subtitle">See up to {{ C.MAX_COMPARE }} restaurants side by side. The best value in each row is marked “Best”.</p>
+</header>
+
+{% if items %}
+<div class="row" style="margin-bottom: var(--space-4); justify-content: space-between;">
+  <p class="muted text-sm">{{ items|length }} of {{ C.MAX_COMPARE }} selected · distances from {{ C.NEIGHBOURHOODS[near].name }}</p>
+  <div class="row">
+    {% if items|length < C.MAX_COMPARE %}<a class="btn btn-outline btn-sm" href="{{ url_for('restaurants.search') }}">{{ icon("plus") }}Add another</a>{% endif %}
+    <form method="post" action="{{ url_for('me.clear_compare') }}" data-confirm="This removes all restaurants from your comparison." data-confirm-title="Clear comparison?" data-confirm-label="Clear all">
+      {{ csrf() }}<input type="hidden" name="next" value="{{ url_for('me.compare') }}">
+      <button type="submit" class="btn btn-ghost btn-sm">{{ icon("trash") }}Clear all</button>
+    </form>
+  </div>
+</div>
+
+<div class="table-wrap">
+  <table class="table compare-table">
+    <caption class="sr-only">Side-by-side comparison of {{ items|length }} restaurants</caption>
+    <thead>
+      <tr>
+        <td></td>
+        {% for r in items %}
+        <th scope="col">
+          <img src="{{ r.photo_url }}" alt="" loading="lazy" data-fallback="{{ C.CUISINE_BY_SLUG[r.cuisine].emoji }}">
+          <a href="{{ url_for('restaurants.detail', rid=r.id) }}" style="color: var(--foreground); font-size: var(--text-base); font-weight: 600">{{ r.name }}</a>
+        </th>
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      <tr><th scope="row">Cuisine</th>{% for r in items %}<td>{{ r.cuisine_name }}</td>{% endfor %}</tr>
+      <tr><th scope="row">Overall rating</th>{% for r in items %}<td>{% if r.avg_overall %}{{ cell(r, "avg_overall", r.avg_overall|rating ~ " / 5") }}{% else %}<span class="muted">No reviews</span>{% endif %}</td>{% endfor %}</tr>
+      {% for key, label in C.RATING_CATEGORIES %}
+      <tr><th scope="row">{{ label }}</th>{% for r in items %}<td>{% if r["avg_" ~ key] %}{{ cell(r, "avg_" ~ key, r["avg_" ~ key]|rating) }}{% else %}<span class="muted">–</span>{% endif %}</td>{% endfor %}</tr>
+      {% endfor %}
+      <tr><th scope="row">Reviews</th>{% for r in items %}<td>{{ cell(r, "review_count", r.review_count) }}</td>{% endfor %}</tr>
+      <tr><th scope="row">Price</th>{% for r in items %}<td>{{ cell(r, "price_level", (r.price_level|price) ~ " · " ~ C.PRICE_LABELS[r.price_level]) }}</td>{% endfor %}</tr>
+      <tr><th scope="row">Distance</th>{% for r in items %}<td>{{ cell(r, "distance_km", r.distance_km|km) }}<br><span class="muted text-xs">{{ r.neighbourhood }}</span></td>{% endfor %}</tr>
+      <tr><th scope="row">Dietary</th>{% for r in items %}<td>{% if r.dietary %}{% for d in r.dietary %}{{ C.DIETARY_LABELS[d] }}{{ ", " if not loop.last }}{% endfor %}{% else %}<span class="muted">None listed</span>{% endif %}</td>{% endfor %}</tr>
+      <tr><th scope="row">Hours</th>{% for r in items %}<td>{{ r.hours }}</td>{% endfor %}</tr>
+      <tr>
+        <th scope="row"><span class="sr-only">Actions</span></th>
+        {% for r in items %}
+        <td>
+          <form method="post" action="{{ url_for('me.toggle_compare', rid=r.id) }}">
+            {{ csrf() }}<input type="hidden" name="compare" value="0"><input type="hidden" name="next" value="{{ url_for('me.compare') }}">
+            <button type="submit" class="btn btn-outline btn-sm">{{ icon("x") }}Remove<span class="sr-only"> {{ r.name }}</span></button>
+          </form>
+        </td>
+        {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% else %}
+{% call empty_state("scale", "Nothing to compare yet", "Press “Compare” on up to " ~ C.MAX_COMPARE ~ " restaurants to see their ratings, prices and distances side by side.") %}
+<a class="btn btn-default" href="{{ url_for('restaurants.search') }}">{{ icon("compass") }}Find restaurants</a>
+{% endcall %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,30 @@
+{% from "components/ui.html" import icon, empty_state with context %}
+{% from "_card.html" import card_grid with context %}
+<div class="results-toolbar">
+  <h2 class="results-count" id="results-count" data-count="{{ results|length }}">
+    {{ results|length }} restaurant{{ '' if results|length == 1 else 's' }} found
+  </h2>
+  <p class="muted text-sm">Sorted by {{ C.SORT_LABELS[filters.sort]|lower }} · distances from {{ C.NEIGHBOURHOODS[near].name }}</p>
+</div>
+
+{% if chips %}
+<div class="chips" aria-label="Active filters" role="group">
+  {% for chip in chips %}
+  <a class="chip" href="{{ chip.url }}" data-chip>
+    <span class="chip-kind">{{ chip.kind }}:</span>
+    <span>{% if chip.sr %}<span aria-hidden="true">{{ chip.label }}</span><span class="sr-only">{{ chip.sr }}</span>{% else %}{{ chip.label }}{% endif %}</span>
+    {{ icon("x") }}<span class="sr-only">, remove filter</span>
+  </a>
+  {% endfor %}
+  <a class="btn btn-ghost btn-sm" href="{{ clear_url }}" data-chip>Clear all</a>
+</div>
+{% endif %}
+
+{% if results %}
+{{ card_grid(results, favorite_ids, compare_set) }}
+{% else %}
+{% call empty_state("search", "No restaurants match these filters", "Try removing a filter, widening the distance, or choosing a different cuisine. Every restaurant in our list is shown when no filters are set.") %}
+<a class="btn btn-default" href="{{ clear_url }}" data-chip>Clear all filters</a>
+{% if filters.cuisine %}<a class="btn btn-outline" href="{{ url_for('restaurants.search', cuisine=filters.cuisine, near=near) }}" data-chip>Show all {{ C.CUISINE_BY_SLUG[filters.cuisine].name }}</a>{% endif %}
+{% endcall %}
+{% endif %}

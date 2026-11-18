@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon with context %}
+{% block title %}{% if filters.cuisine %}{{ C.CUISINE_BY_SLUG[filters.cuisine].name }} restaurants{% else %}Discover restaurants{% endif %} near {{ C.NEIGHBOURHOODS[near].name }}{% endblock %}
+{% block content %}
+<header class="page-header">
+  <h1 class="page-title">
+    {% if filters.cuisine %}{{ C.CUISINE_BY_SLUG[filters.cuisine].name }} restaurants{% else %}Discover restaurants{% endif %}
+  </h1>
+  <p class="page-subtitle">Filter by what matters to you. Results update as you change filters.</p>
+</header>
+
+<div class="results-layout">
+  <aside class="filters-aside" aria-labelledby="filters-title" id="filters-home">
+    <h2 class="sr-only" id="filters-title">Filters</h2>
+    {% include "_filters.html" %}
+  </aside>
+
+  <div>
+    <div class="row filters-open" style="margin-bottom: var(--space-4)">
+      <button type="button" class="btn btn-outline js-only" data-dialog-open="filters-sheet" hidden>
+        {{ icon("sliders") }}Filters{% if chips %} <span class="nav-count">{{ chips|length }}</span>{% endif %}
+      </button>
+    </div>
+    <section id="results" aria-labelledby="results-count">
+      {% include "_results.html" %}
+    </section>
+  </div>
+</div>
+
+<dialog class="sheet sheet-left" id="filters-sheet" aria-labelledby="filters-sheet-title">
+  <div class="sheet-header">
+    <h2 class="card-title" id="filters-sheet-title">Filters</h2>
+    <button type="button" class="btn btn-ghost btn-icon" data-dialog-close aria-label="Close filters">{{ icon("x") }}</button>
+  </div>
+  <div class="sheet-body" data-filters-slot></div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-default btn-block" data-dialog-close>Show <span data-sheet-count>{{ results|length }}</span> results</button>
+  </div>
+</dialog>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/filters.js') }}"></script>{% endblock %}

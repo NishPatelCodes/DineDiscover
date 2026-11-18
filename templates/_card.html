@@ -1,0 +1,57 @@
+{% from "components/ui.html" import icon, rating, price, diet_badges, csrf with context %}
+
+{% macro favorite_button(r, pressed, cls="btn btn-outline btn-icon btn-favorite", with_label=false) -%}
+<form method="post" action="{{ url_for('me.toggle_favorite', rid=r.id) }}" class="favorite-form">
+  {{ csrf() }}
+  <input type="hidden" name="favorite" value="{{ '0' if pressed else '1' }}">
+  <input type="hidden" name="next" value="{{ current_path() }}">
+  <button type="submit" class="{{ cls }}" data-favorite data-id="{{ r.id }}" data-name="{{ r.name }}"
+    aria-pressed="{{ 'true' if pressed else 'false' }}"
+    aria-label="{{ ('Remove ' ~ r.name ~ ' from favorites') if pressed else ('Save ' ~ r.name ~ ' to favorites') }}">
+    {{ icon("heart") }}{% if with_label %}<span aria-hidden="true">Favorite</span>{% endif %}
+  </button>
+</form>
+{%- endmacro %}
+
+{% macro compare_button(r, pressed, cls="btn btn-outline btn-sm") -%}
+<form method="post" action="{{ url_for('me.toggle_compare', rid=r.id) }}">
+  {{ csrf() }}
+  <input type="hidden" name="compare" value="{{ '0' if pressed else '1' }}">
+  <input type="hidden" name="next" value="{{ current_path() }}">
+  <button type="submit" class="{{ cls }}" data-compare data-id="{{ r.id }}" data-name="{{ r.name }}"
+    aria-pressed="{{ 'true' if pressed else 'false' }}">
+    {{ icon("scale", "when-off") }}{{ icon("check", "when-on") }}Compare<span class="sr-only"> {{ r.name }}</span>
+  </button>
+</form>
+{%- endmacro %}
+
+{% macro restaurant_card(r, favorite_ids, compare_set, heading="h3") -%}
+<article class="card r-card" data-restaurant="{{ r.id }}" aria-labelledby="r-{{ r.id }}-name">
+  <div class="r-media">
+    <img src="{{ r.photo_url }}" alt="{{ r.photo_alt }}" loading="lazy" decoding="async" width="900" height="563"
+      data-fallback="{{ C.CUISINE_BY_SLUG[r.cuisine].emoji }}">
+    {% if current_user %}
+    {{ favorite_button(r, r.id in favorite_ids) }}
+    {% endif %}
+  </div>
+  <div class="r-body">
+    <{{ heading }} class="r-title" id="r-{{ r.id }}-name"><a href="{{ url_for('restaurants.detail', rid=r.id) }}">{{ r.name }}</a></{{ heading }}>
+    {{ rating(r) }}
+    <div class="r-meta">
+      <span class="badge badge-brand"><span aria-hidden="true">{{ C.CUISINE_BY_SLUG[r.cuisine].emoji }}</span> {{ r.cuisine_name }}</span>
+      {{ price(r.price_level) }}
+      <span class="r-distance">{{ icon("map-pin") }}{{ r.distance_km|km }}<span class="sr-only"> from {{ C.NEIGHBOURHOODS[near].name }}</span> · {{ r.neighbourhood }}</span>
+    </div>
+    {% if r.dietary %}<div class="r-tags">{{ diet_badges(r.dietary) }}</div>{% endif %}
+    <div class="r-actions">
+      {{ compare_button(r, r.id in compare_set) }}
+    </div>
+  </div>
+</article>
+{%- endmacro %}
+
+{% macro card_grid(items, favorite_ids, compare_set, heading="h3") -%}
+<ul class="card-grid" role="list">
+  {% for r in items %}<li>{{ restaurant_card(r, favorite_ids, compare_set, heading) }}</li>{% endfor %}
+</ul>
+{%- endmacro %}

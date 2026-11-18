@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "components/ui.html" import icon with context %}
+{% block title %}{{ "Page not found" if code == 404 else "Something went wrong" }}{% endblock %}
+{% block content %}
+<section class="error-page">
+  <p class="error-code" aria-hidden="true">{{ code }}</p>
+  <h1 class="page-title">{{ "We couldn't find that page" if code == 404 else ("That request didn't work" if code == 400 else "Something went wrong") }}</h1>
+  <p class="page-subtitle">{{ description if description and code != 500 else "Try going back, or start a new search." }}</p>
+  <div class="row" style="justify-content:center; margin-top: var(--space-6);">
+    <a class="btn btn-default" href="{{ url_for('restaurants.home') }}">{{ icon("arrow-left") }}Back to home</a>
+    <a class="btn btn-outline" href="{{ url_for('restaurants.search') }}">{{ icon("search") }}Browse restaurants</a>
+  </div>
+</section>
+{% endblock %}
