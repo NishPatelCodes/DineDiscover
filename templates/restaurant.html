@@ -41,7 +41,8 @@
       <div>{{ icon("map-pin") }}<span>{{ r.address }}, {{ r.neighbourhood }} · <strong>{{ r.distance_km|km }}</strong> from {{ C.NEIGHBOURHOODS[near].name }}</span></div>
       <div><span class="icon" aria-hidden="true" style="text-align:center; font-weight:700; line-height:1">$</span><span>{{ r.price_level|price }} · {{ C.PRICE_LABELS[r.price_level] }}</span></div>
       <div>{{ icon("clock") }}<span>{{ r.hours }}</span></div>
-      <div>{{ icon("phone") }}<a href="tel:{{ r.phone|replace(' ', '')|replace('(', '')|replace(')', '')|replace('-', '') }}">{{ r.phone }}</a></div>
+      {% if r.phone %}<div>{{ icon("phone") }}<a href="tel:+1{{ r.phone|replace(' ', '')|replace('(', '')|replace(')', '')|replace('-', '') }}">{{ r.phone }}</a></div>{% endif %}
+      {% if r.website %}<div>{{ icon("globe") }}<a href="{{ r.website }}" target="_blank" rel="noopener">Visit website<span class="sr-only"> (opens in a new tab)</span></a></div>{% endif %}
     </div>
     {% if r.dietary %}<div class="r-tags" style="margin-bottom: var(--space-6)" aria-label="Dietary options">{{ diet_badges(r.dietary) }}</div>{% endif %}
 

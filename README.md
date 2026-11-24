@@ -40,7 +40,7 @@ pip install -r requirements.txt
 flask --app app run --debug
 ```
 
-Open [http://127.0.0.1:5000](http://127.0.0.1:5000). The first launch creates `instance/dinediscover.db` and loads the sample data automatically.
+Open [http://127.0.0.1:5000](http://127.0.0.1:5000). The first launch creates `instance/dinediscover.db` and loads the Halifax restaurant data automatically.
 
 ### Optional commands
 
@@ -68,14 +68,16 @@ Password for every demo user: `dinediscover`
 
 You can also create a new account from **Sign up**.
 
-## Sample data
+## Restaurant data
 
-- 50 real Halifax-area restaurants from [OpenStreetMap](https://www.openstreetmap.org/copyright) (names, addresses, coordinates, hours)
-- Mapped into 8 cuisines: Indian, Italian, Japanese, Chinese, Mexican, Thai, Middle Eastern, Seafood
-- Neighbourhoods: Downtown, North End, South End, Dartmouth, Bedford, Clayton Park
+- 48 real, independent Halifax-area restaurants, hand-picked and checked in November 2026: places like Great Wall, King of Donair, The Bicycle Thief, Buta Ramen, Cha Baa Thai and The Five Fishermen. No chains, closed places or duplicates.
+- Addresses, coordinates, phones, websites and (where known) hours were cross-checked against [OpenStreetMap](https://www.openstreetmap.org/copyright) and public listings. Hours change, so call ahead.
+- 8 cuisines: Indian, Italian, Japanese, Chinese, Mexican, Thai, Middle Eastern (including Halifax donair), Seafood
+- Neighbourhoods: Downtown Halifax, North End, South End, West End, Dartmouth, Bedford, Clayton Park
 - Distance is measured from the neighbourhood you pick (not GPS)
-- Photos are Unsplash placeholders by cuisine; demo reviews and Top 5 rankings are synthetic
-- Refresh OSM data: `python scripts/fetch_halifax.py` then `python scripts/build_seed_data.py` then `python seed.py`
+- Dietary tags are a best guess from menus; confirm allergies with the restaurant
+- Photos are representative Unsplash images by cuisine. Member reviews and Top 5 rankings are generated sample content.
+- Edit the list in `scripts/build_seed_data.py`, then run `python scripts/build_seed_data.py` and `python seed.py`. `scripts/fetch_halifax.py` pulls raw OSM data, which is handy for looking up coordinates.
 
 ## Tests
 

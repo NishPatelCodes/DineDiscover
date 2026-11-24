@@ -1,7 +1,8 @@
 """Recreate the database with real Halifax restaurants (OpenStreetMap), demo users, reviews and Top 5 lists.
 
-Restaurant names, locations and hours come from OpenStreetMap. Demo reviews and rankings are synthetic.
-Photos are Unsplash placeholders by cuisine. Run with:  python seed.py
+Restaurants are a hand-curated list of real Halifax-area places (data/halifax_restaurants.json,
+built by scripts/build_seed_data.py). Member reviews and rankings are generated for the course demo.
+Photos are representative Unsplash images by cuisine. Run with:  python seed.py
 """
 from __future__ import annotations
 
@@ -17,6 +18,23 @@ DEMO_PASSWORD = "dinediscover"
 DATA_PATH = Path(__file__).resolve().parent / "data" / "halifax_restaurants.json"
 
 DEMO_USERS = ["priya", "sofia", "liam", "emma", "ahmed", "chen", "marcus"]
+
+DISHES = {
+    "indian": ["butter chicken", "lamb vindaloo", "chana masala", "biryani", "garlic naan", "palak paneer"],
+    "italian": ["gnocchi", "margherita pizza", "carbonara", "tiramisu", "lasagna", "seafood linguine"],
+    "japanese": ["spicy salmon roll", "tonkotsu ramen", "nigiri", "gyoza", "chirashi bowl", "karaage"],
+    "chinese": ["ginger beef", "dim sum", "egg rolls", "General Tao chicken", "Singapore noodles", "dumplings"],
+    "mexican": ["birria tacos", "carnitas", "burrito", "nachos", "fish tacos", "churros"],
+    "thai": ["pad thai", "green curry", "tom yum", "massaman curry", "drunken noodles", "mango sticky rice"],
+    "middle-eastern": ["donair", "chicken shawarma", "falafel", "fattoush", "garlic potatoes", "baklava"],
+    "seafood": ["seafood chowder", "lobster roll", "fish and chips", "Malpeque oysters", "pan-fried haddock", "scallops"],
+}
+DISH_LINES = [
+    "The {dish} was excellent.",
+    "Had the {dish} and it was spot on.",
+    "Their {dish} is the reason I keep coming back.",
+    "The {dish} was good, though not the best I've had.",
+]
 
 PRAISE = {
     "taste": [
@@ -75,11 +93,10 @@ def seed_database():
 
     restaurants = []
     for row in rows:
-        phone = row.get("phone") or f"(902) {rng.randint(400, 499)}-{rng.randint(1000, 9999)}"
         cur = db.execute(
             """INSERT INTO restaurants (name, cuisine, neighbourhood, address, lat, lng, price_level,
-               dietary_tags, photo_url, photo_alt, description, hours, phone)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+               dietary_tags, photo_url, photo_alt, description, hours, phone, website)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 row["name"],
                 row["cuisine"],
@@ -93,7 +110,8 @@ def seed_database():
                 row["photo_alt"],
                 row["description"],
                 row["hours"],
-                phone,
+                row.get("phone", ""),
+                row.get("website", ""),
             ),
         )
         restaurants.append({"id": cur.lastrowid, "cuisine": row["cuisine"], "quality": row.get("quality", 4.0)})
@@ -106,6 +124,7 @@ def seed_database():
             overall = _clamp(sum(ratings.values()) / 4 + rng.uniform(-0.3, 0.3))
             body = " ".join(
                 [
+                    rng.choice(DISH_LINES).format(dish=rng.choice(DISHES[r["cuisine"]])),
                     rng.choice(PRAISE["taste"]),
                     rng.choice(PRAISE["service"]),
                     rng.choice(PRAISE["value"]),

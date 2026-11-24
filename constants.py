@@ -14,6 +14,7 @@ NEIGHBOURHOODS = {
     "downtown": {"name": "Downtown Halifax", "lat": 44.6488, "lng": -63.5752},
     "north-end": {"name": "North End", "lat": 44.6620, "lng": -63.5960},
     "south-end": {"name": "South End", "lat": 44.6370, "lng": -63.5800},
+    "west-end": {"name": "West End", "lat": 44.6460, "lng": -63.6010},
     "dartmouth": {"name": "Dartmouth", "lat": 44.6656, "lng": -63.5670},
     "bedford": {"name": "Bedford", "lat": 44.7325, "lng": -63.6560},
     "clayton-park": {"name": "Clayton Park", "lat": 44.6600, "lng": -63.6450},

@@ -177,8 +177,13 @@ def test_styleguide_available_when_enabled(client):
     assert client.get("/styleguide").status_code == 200
 
 
-def test_seed_has_fifty_real_places():
+def test_seed_has_curated_halifax_places():
+    from constants import NEIGHBOURHOODS
+
     rows = load_restaurants()
-    assert len(rows) == 50
-    assert all(r.get("osm_id") for r in rows)
+    assert len(rows) >= 40
+    assert len({r["name"].lower() for r in rows}) == len(rows), "duplicate restaurant names"
     assert len({r["cuisine"] for r in rows}) == 8
+    hoods = {h["name"] for h in NEIGHBOURHOODS.values()}
+    assert all(r["neighbourhood"] in hoods for r in rows)
+    assert all(r["address"] and r["address"] != "Halifax, NS" for r in rows)

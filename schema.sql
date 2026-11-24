@@ -26,7 +26,8 @@ CREATE TABLE restaurants (
     photo_alt TEXT NOT NULL,
     description TEXT NOT NULL,
     hours TEXT NOT NULL,
-    phone TEXT NOT NULL
+    phone TEXT NOT NULL DEFAULT '',
+    website TEXT NOT NULL DEFAULT ''
 );
 CREATE INDEX idx_restaurants_cuisine ON restaurants (cuisine);
 
